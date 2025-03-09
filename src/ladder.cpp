@@ -90,6 +90,9 @@ bool is_adjacent(const string& word1, const string& word2) {
 
 //word ladder func that uses bfs
 vector<string> generate_word_ladder(const string& begin_word, const string& end_word, const set<string>& word_list) {
+    if (begin_word == end_word) {
+        return {};
+    }
     // Make a copy of the dictionary to remove used words.
     set<string> dict = word_list;
     // The end word must be in the dictionary; the start word might be outside.
@@ -125,6 +128,10 @@ vector<string> generate_word_ladder(const string& begin_word, const string& end_
                 ladder_queue.push(new_ladder);
                 used_words.insert(n);
             }
+        }
+        
+        if (begin_word == end_word) {
+            return {};
         }
         // Remove all words used in this level from the dictionary.
         for (const string& w : used_words) {
