@@ -93,51 +93,78 @@ vector<string> generate_word_ladder(const string& begin_word, const string& end_
     if (begin_word == end_word) {
         return {};
     }
+
     // Make a copy of the dictionary to remove used words.
     set<string> dict = word_list;
+
     // The end word must be in the dictionary; the start word might be outside.
+    if (dict.find(end_word) == dict.end()) {
+        return {}; // End word is not in the dictionary.
+    }
+
     queue<vector<string>> ladder_queue;
     vector<string> start_ladder = { begin_word };
     ladder_queue.push(start_ladder);
-    
+
+    // Track used words to avoid reuse.
+    unordered_set<string> used_words;
+    used_words.insert(begin_word);
+
     while (!ladder_queue.empty()) {
         int level_size = ladder_queue.size();
-        // Keep track of words used in this level.
-        set<string> used_words;
+
         for (int i = 0; i < level_size; i++) {
             vector<string> ladder = ladder_queue.front();
             ladder_queue.pop();
             string last_word = ladder.back();
+
+            // Check if the last word is the end word.
             if (last_word == end_word) {
                 return ladder;
             }
-            // For each word remaining in the dictionary, if it is adjacent to the last word, add it.
-            vector<string> neighbors;
-            for (const string& word : dict) {
-                // For ladder generation, explicitly skip identical words.
-                if (word == last_word)
-                    continue;
-                if (is_adjacent(last_word, word)) {
-                    neighbors.push_back(word);
+
+            // Generate all possible neighbors.
+            for (size_t j = 0; j < last_word.size(); ++j) {
+                string new_word = last_word;
+                for (char c = 'a'; c <= 'z'; ++c) {
+                    new_word[j] = c; // Try substituting each character.
+                    if (dict.find(new_word) != dict.end() && used_words.find(new_word) == used_words.end()) {
+                        vector<string> new_ladder = ladder;
+                        new_ladder.push_back(new_word);
+                        ladder_queue.push(new_ladder);
+                        used_words.insert(new_word);
+                    }
                 }
             }
-            // Enqueue new ladders and mark words as used.
-            for (const string& n : neighbors) {
-                vector<string> new_ladder = ladder;
-                new_ladder.push_back(n);
-                ladder_queue.push(new_ladder);
-                used_words.insert(n);
+
+            // Try adding a character.
+            for (size_t j = 0; j <= last_word.size(); ++j) {
+                for (char c = 'a'; c <= 'z'; ++c) {
+                    string new_word = last_word;
+                    new_word.insert(j, 1, c); // Insert character at position j.
+                    if (dict.find(new_word) != dict.end() && used_words.find(new_word) == used_words.end()) {
+                        vector<string> new_ladder = ladder;
+                        new_ladder.push_back(new_word);
+                        ladder_queue.push(new_ladder);
+                        used_words.insert(new_word);
+                    }
+                }
+            }
+
+            // Try deleting a character.
+            for (size_t j = 0; j < last_word.size(); ++j) {
+                string new_word = last_word;
+                new_word.erase(j, 1); // Delete character at position j.
+                if (dict.find(new_word) != dict.end() && used_words.find(new_word) == used_words.end()) {
+                    vector<string> new_ladder = ladder;
+                    new_ladder.push_back(new_word);
+                    ladder_queue.push(new_ladder);
+                    used_words.insert(new_word);
+                }
             }
         }
-        
-        if (used_words.empty()) {
-            return {};
-        }
-        // Remove all words used in this level from the dictionary.
-        for (const string& w : used_words) {
-            dict.erase(w);
-        }
     }
+
     return {}; // No ladder found.
 }
 
@@ -174,13 +201,34 @@ void print_word_ladder(const vector<string>& ladder) {
 #define my_assert(e) { cout << #e << ((e) ? " passed" : " failed") << endl; }
 
 void verify_word_ladder() {
+    // set<string> word_list;
+    // load_words(word_list, "src/words.txt");  // Adjust the file path if necessary
+
+    // my_assert(generate_word_ladder("cat", "dog", word_list).size() == 4);
+    // my_assert(generate_word_ladder("marty", "curls", word_list).size() == 6);
+    // my_assert(generate_word_ladder("code", "data", word_list).size() == 6);
+    // my_assert(generate_word_ladder("work", "play", word_list).size() == 6);
+    // my_assert(generate_word_ladder("sleep", "awake", word_list).size() == 8);
+    // my_assert(generate_word_ladder("car", "cheat", word_list).size() == 4);
     set<string> word_list;
     load_words(word_list, "src/words.txt");  // Adjust the file path if necessary
 
-    my_assert(generate_word_ladder("cat", "dog", word_list).size() == 4);
-    my_assert(generate_word_ladder("marty", "curls", word_list).size() == 6);
-    my_assert(generate_word_ladder("code", "data", word_list).size() == 6);
-    my_assert(generate_word_ladder("work", "play", word_list).size() == 6);
-    my_assert(generate_word_ladder("sleep", "awake", word_list).size() == 8);
-    my_assert(generate_word_ladder("car", "cheat", word_list).size() == 4);
+    // Test cases
+    vector<string> ladder1 = generate_word_ladder("cat", "dog", word_list);
+    my_assert(ladder1.size() == 4);
+
+    vector<string> ladder2 = generate_word_ladder("marty", "curls", word_list);
+    my_assert(ladder2.size() == 6);
+
+    vector<string> ladder3 = generate_word_ladder("code", "data", word_list);
+    my_assert(ladder3.size() == 6);
+
+    vector<string> ladder4 = generate_word_ladder("work", "play", word_list);
+    my_assert(ladder4.size() == 6);
+
+    vector<string> ladder5 = generate_word_ladder("sleep", "awake", word_list);
+    my_assert(ladder5.size() == 8);
+
+    vector<string> ladder6 = generate_word_ladder("car", "cheat", word_list);
+    my_assert(ladder6.size() == 4);
 }
