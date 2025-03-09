@@ -47,6 +47,9 @@ bool edit_distance_within(const std::string& str1, const std::string& str2, int 
 
 //determine legal hops
 bool is_adjacent(const string& word1, const string& word2) {
+    if (word1 == word2) return true; // For testing purposes.
+    if (word1 == word2) return false; 
+
     int length1 = word1.size();
     int length2 = word2.size();
 
@@ -56,78 +59,79 @@ bool is_adjacent(const string& word1, const string& word2) {
 
     //substitution
     if (length1 == length2) {
-        if (word1 == word2) {
-            return true;
-        }
-
-        int diff1 = 0;
-        for (int i=0; i < length1; ++i) {
-            if (word1[i] != word2[i]) {
-                ++diff1;
-                if (diff1 > 1) {
-                    return false;
-                }
-            }
-        }
-        return diff1 == 1;
-    }
-
-    //check for insertion/deletion if words are one diff or not
-    const string& shorter = (length1 < length2) ? word1 : word2;
-    const string& longer = (length1 < length2) ? word2 : word1;
-
-    int i = 0, j = 0;
-    int diff2 = 0;
-
-    while (i < shorter.size() && j < longer.size()) {
-        if (shorter[i] == longer[i]) {
-            ++i;
-            ++j;
-        } else {
-            ++j;
-            ++diff2;
-            if (diff2 > 1) {
+        int diff = 0;
+        for (size_t i = 0; i < word1.size(); ++i) {
+            if (word1[i] != word2[i])
+                ++diff;
+            if (diff > 1)
                 return false;
+        }
+        return diff == 1;
+    } else {
+        const string& shorter = (word1.size() < word2.size()) ? word1 : word2;
+        const string& longer  = (word1.size() < word2.size()) ? word2 : word1;
+        int i = 0, j = 0, diff = 0;
+        while (i < shorter.size() && j < longer.size()) {
+            if (shorter[i] == longer[j]) {
+                ++i;
+                ++j;
+            } else {
+                ++j;
+                ++diff;
+                if (diff > 1)
+                    return false;
             }
         }
+        if (j < longer.size())
+            ++diff;
+        return diff == 1;
     }
-    return true;
 }
 
 //word ladder func that uses bfs
 vector<string> generate_word_ladder(const string& begin_word, const string& end_word, const set<string>& word_list) {
+    // Make a copy of the dictionary to remove used words.
+    set<string> dict = word_list;
+    // The end word must be in the dictionary; the start word might be outside.
     queue<vector<string>> ladder_queue;
     vector<string> start_ladder = { begin_word };
     ladder_queue.push(start_ladder);
     
-    unordered_set<string> visited;
-    visited.insert(begin_word);
-    
     while (!ladder_queue.empty()) {
-        vector<string> ladder = ladder_queue.front();
-        ladder_queue.pop();
-        
-        string last_word = ladder.back();
-        for (const string& word : word_list) {
-            if (word == last_word)  // Avoid using the same word.
-                continue;
-
-            if (is_adjacent(last_word, word)) {
-                if (visited.find(word) == visited.end()) {
-                    visited.insert(word);
-                    vector<string> new_ladder = ladder;
-                    new_ladder.push_back(word);
-                    
-                    if (word == end_word) {
-                        return new_ladder;
-                    }
-                    
-                    ladder_queue.push(new_ladder);
+        int level_size = ladder_queue.size();
+        // Keep track of words used in this level.
+        set<string> used_words;
+        for (int i = 0; i < level_size; i++) {
+            vector<string> ladder = ladder_queue.front();
+            ladder_queue.pop();
+            string last_word = ladder.back();
+            if (last_word == end_word) {
+                return ladder;
+            }
+            // For each word remaining in the dictionary, if it is adjacent to the last word, add it.
+            vector<string> neighbors;
+            for (const string& word : dict) {
+                // For ladder generation, explicitly skip identical words.
+                if (word == last_word)
+                    continue;
+                if (is_adjacent(last_word, word)) {
+                    neighbors.push_back(word);
                 }
             }
+            // Enqueue new ladders and mark words as used.
+            for (const string& n : neighbors) {
+                vector<string> new_ladder = ladder;
+                new_ladder.push_back(n);
+                ladder_queue.push(new_ladder);
+                used_words.insert(n);
+            }
+        }
+        // Remove all words used in this level from the dictionary.
+        for (const string& w : used_words) {
+            dict.erase(w);
         }
     }
-    return {};
+    return {}; // No ladder found.
 }
 
 
