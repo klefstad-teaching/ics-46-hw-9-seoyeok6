@@ -39,10 +39,6 @@ bool edit_distance_within(const std::string& str1, const std::string& str2, int 
             } else {
                 dp[i][j] = 1 + min({dp[i - 1][j], dp[i][j - 1], dp[i - 1][j - 1]});
             }
-
-            if (dp[i][j] > d) {
-                return false;
-            }
         }
     }
     //check final edit distance
@@ -60,14 +56,17 @@ bool is_adjacent(const string& word1, const string& word2) {
 
     //substitution
     if (length1 == length2) {
+        if (word1 == word2) {
+            return true;
+        }
+
         int diff1 = 0;
         for (int i=0; i < length1; ++i) {
             if (word1[i] != word2[i]) {
                 ++diff1;
-            }
-
-            if (diff1 > 1) {
-                return false;
+                if (diff1 > 1) {
+                    return false;
+                }
             }
         }
         return diff1 == 1;
@@ -75,7 +74,7 @@ bool is_adjacent(const string& word1, const string& word2) {
 
     //check for insertion/deletion if words are one diff or not
     const string& shorter = (length1 < length2) ? word1 : word2;
-    const string& longer = (length1 > length2) ? word2 : word1;
+    const string& longer = (length1 < length2) ? word2 : word1;
 
     int i = 0, j = 0;
     int diff2 = 0;
@@ -110,6 +109,9 @@ vector<string> generate_word_ladder(const string& begin_word, const string& end_
         
         string last_word = ladder.back();
         for (const string& word : word_list) {
+            if (word == last_word)  // Avoid using the same word.
+                continue;
+                
             if (is_adjacent(last_word, word)) {
                 if (visited.find(word) == visited.end()) {
                     visited.insert(word);
