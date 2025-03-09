@@ -149,13 +149,57 @@ vector<string> generate_word_ladder(const string& begin_word, const string& end_
 //load ladder word into filename
 void load_words(set<string> & word_list, const string& file_name) {
     ifstream file(file_name);
-    i
+    if (!file.is_open()) {
+        error("load_words", file_name, "Could not open file.")
+        return;
+    }
+
+    string word;
+    while (file >> word) { // Read each word from the file
+        word_list.insert(word); // Insert the word into the set
+    }
+
+    file.close(); // Close the file
 }
 
 void print_word_ladder(const vector<string>& ladder) {
+    if (ladder.empty()) {
+        cout << "No ladder found." << endl;
+        return;
+    }
 
+    cout << "Word ladder:" << endl;
+    for (const string& word : ladder) {
+        cout << word << " ";
+    }
+    cout << endl;
 }
 
-void verify_word_ladder() {
+void verify_word_ladder(const vector<string>& ladder, const string& begin_word, const string& end_word) {
+    if (ladder.empty()) {
+        error("", "", "Ladder is empty.");
+        return;
+    }
 
+    // Check if the first word matches the begin_word
+    if (ladder.front() != begin_word) {
+        error(ladder.front(), begin_word, "Ladder does not start with the correct word.");
+        return;
+    }
+
+    // Check if the last word matches the end_word
+    if (ladder.back() != end_word) {
+        error(ladder.back(), end_word, "Ladder does not end with the correct word.");
+        return;
+    }
+
+    // Check adjacency for each consecutive pair of words
+    for (size_t i = 0; i < ladder.size() - 1; ++i) {
+        if (!is_adjacent(ladder[i], ladder[i + 1])) {
+            error(ladder[i], ladder[i + 1], "Words are not adjacent.");
+            return;
+        }
+    }
+
+    cout << "The word ladder is valid." << endl;
 }
