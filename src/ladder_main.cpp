@@ -17,11 +17,6 @@ int main() {
     transform(begin_word.begin(), begin_word.end(), begin_word.begin(), ::tolower);
     transform(end_word.begin(), end_word.end(), end_word.begin(), ::tolower);
 
-    if (word_list.find(begin_word) != word_list.end()) {
-        cerr << "Error: The start word must not be in the dictionary." << endl;
-        return 1;
-    }
-
      if (word_list.find(end_word) == word_list.end()) {
         cerr << "Error: The end word must be in the dictionary." << endl;
         return 1;
