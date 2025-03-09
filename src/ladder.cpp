@@ -5,6 +5,7 @@
 #include <string>
 #include <unordered_set>
 #include <stack>
+#include <algorithm>
 
 void error(string word1, string word2, string msg) {
     cerr << "For: " << word1 << ", " << word2 << " - " << msg << endl;
@@ -34,11 +35,9 @@ bool edit_distance_within(const std::string& str1, const std::string& str2, int 
     for (int i = 1; i <= m; ++i) {
         for (int j = 1; j <= n; ++j) {
             if (str1[i-1] == str2[j-1]) {
-                dp[i][j] == dp[i-1][j-1];
+                dp[i][j] = dp[i-1][j-1];
             } else {
-                dp[i][j] = 1 + min({dp[i - 1][j],    // Delete
-                                    dp[i][j - 1],    // Insert
-                                    dp[i - 1][j - 1]});
+                dp[i][j] = 1 + min({dp[i - 1][j], dp[i][j - 1], dp[i - 1][j - 1]});
             }
 
             if (dp[i][j] > d) {
@@ -75,8 +74,8 @@ bool is_adjacent(const string& word1, const string& word2) {
     }
 
     //check for insertion/deletion if words are one diff or not
-    const string& shorter = (length1 < length2) ? length1 : length2;
-    const string& longer = (length1 > length2) ? length1 : length2;
+    const string& shorter = (length1 < length2) ? word1 : word2;
+    const string& longer = (length1 > length2) ? word2 : word1;
 
     int i = 0, j = 0;
     int diff2 = 0;
@@ -98,46 +97,30 @@ bool is_adjacent(const string& word1, const string& word2) {
 
 //word ladder func that uses bfs
 vector<string> generate_word_ladder(const string& begin_word, const string& end_word, const set<string>& word_list) {
-    //queue stores partial ladders that are potential routes
-    queue<stack<vector<string>>> ladder_queue;
+    queue<vector<string>> ladder_queue;
+    vector<string> start_ladder = { begin_word };
+    ladder_queue.push(start_ladder);
     
-    //stack for the connection of words
-    stack<vector<string>> initial_stack;
-    initial_stack.push(begin_word);
-    ladder_queue.push(initial_stack);
-
-    //keep track of visited words
     unordered_set<string> visited;
     visited.insert(begin_word);
-
-    //BFS
-    while(!ladder_queue.empty()) {
-        stack<vector<string>> current_stack = ladder_queue.front();
+    
+    while (!ladder_queue.empty()) {
+        vector<string> ladder = ladder_queue.front();
         ladder_queue.pop();
-
-        //current ladder from the top of the stack
-        vector<string> ladder = current_stack.top();
-        current_stack.pop();
-
+        
         string last_word = ladder.back();
-
         for (const string& word : word_list) {
             if (is_adjacent(last_word, word)) {
                 if (visited.find(word) == visited.end()) {
                     visited.insert(word);
-
                     vector<string> new_ladder = ladder;
                     new_ladder.push_back(word);
-
+                    
                     if (word == end_word) {
                         return new_ladder;
                     }
-
-                    //create a new stack
-                    stack<vector<string>> new_stack = current_stack;
-                    new_stack.push(new_ladder);
-
-                    ladder_queue.push(new_stack);
+                    
+                    ladder_queue.push(new_ladder);
                 }
             }
         }
@@ -150,7 +133,7 @@ vector<string> generate_word_ladder(const string& begin_word, const string& end_
 void load_words(set<string> & word_list, const string& file_name) {
     ifstream file(file_name);
     if (!file.is_open()) {
-        error("load_words", file_name, "Could not open file.")
+        error("load_words", file_name, "Could not open file.");
         return;
     }
 
@@ -175,31 +158,16 @@ void print_word_ladder(const vector<string>& ladder) {
     cout << endl;
 }
 
-void verify_word_ladder(const vector<string>& ladder, const string& begin_word, const string& end_word) {
-    if (ladder.empty()) {
-        error("", "", "Ladder is empty.");
-        return;
-    }
+#define my_assert(e) { cout << #e << ((e) ? " passed" : " failed") << endl; }
 
-    // Check if the first word matches the begin_word
-    if (ladder.front() != begin_word) {
-        error(ladder.front(), begin_word, "Ladder does not start with the correct word.");
-        return;
-    }
+void verify_word_ladder() {
+    set<string> word_list;
+    load_words(word_list, "words.txt");  // Adjust the file path if necessary
 
-    // Check if the last word matches the end_word
-    if (ladder.back() != end_word) {
-        error(ladder.back(), end_word, "Ladder does not end with the correct word.");
-        return;
-    }
-
-    // Check adjacency for each consecutive pair of words
-    for (size_t i = 0; i < ladder.size() - 1; ++i) {
-        if (!is_adjacent(ladder[i], ladder[i + 1])) {
-            error(ladder[i], ladder[i + 1], "Words are not adjacent.");
-            return;
-        }
-    }
-
-    cout << "The word ladder is valid." << endl;
+    my_assert(generate_word_ladder("cat", "dog", word_list).size() == 4);
+    my_assert(generate_word_ladder("marty", "curls", word_list).size() == 6);
+    my_assert(generate_word_ladder("code", "data", word_list).size() == 6);
+    my_assert(generate_word_ladder("work", "play", word_list).size() == 6);
+    my_assert(generate_word_ladder("sleep", "awake", word_list).size() == 8);
+    my_assert(generate_word_ladder("car", "cheat", word_list).size() == 4);
 }

@@ -1,6 +1,6 @@
-#include "ladder.cpp"
+#include "ladder.h"
 
-void main() {
+int main() {
     set<string> word_list;
     load_words(word_list, "src/words.txt"); // Load the dictionary
 
@@ -19,7 +19,7 @@ void main() {
     print_word_ladder(ladder);
 
     // Verify the word ladder
-    verify_word_ladder(ladder, begin_word, end_word);
+    verify_word_ladder();
 
     return 0;
     
