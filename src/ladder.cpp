@@ -130,7 +130,7 @@ vector<string> generate_word_ladder(const string& begin_word, const string& end_
             }
         }
         
-        if (begin_word == end_word) {
+        if (used_words.empty()) {
             return {};
         }
         // Remove all words used in this level from the dictionary.
@@ -164,7 +164,7 @@ void print_word_ladder(const vector<string>& ladder) {
         return;
     }
 
-    cout << "Word ladder:" << endl;
+    cout << "Word ladder found:";
     for (const string& word : ladder) {
         cout << word << " ";
     }
