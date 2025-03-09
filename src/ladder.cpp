@@ -111,7 +111,7 @@ vector<string> generate_word_ladder(const string& begin_word, const string& end_
         for (const string& word : word_list) {
             if (word == last_word)  // Avoid using the same word.
                 continue;
-                
+
             if (is_adjacent(last_word, word)) {
                 if (visited.find(word) == visited.end()) {
                     visited.insert(word);
@@ -164,7 +164,7 @@ void print_word_ladder(const vector<string>& ladder) {
 
 void verify_word_ladder() {
     set<string> word_list;
-    load_words(word_list, "words.txt");  // Adjust the file path if necessary
+    load_words(word_list, "src/words.txt");  // Adjust the file path if necessary
 
     my_assert(generate_word_ladder("cat", "dog", word_list).size() == 4);
     my_assert(generate_word_ladder("marty", "curls", word_list).size() == 6);
