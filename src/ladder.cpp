@@ -124,15 +124,13 @@ vector<string> generate_word_ladder(const string& begin_word, const string& end_
             }
 
             // Generate all possible neighbors.
+            vector<string> neighbors;
             for (size_t j = 0; j < last_word.size(); ++j) {
                 string new_word = last_word;
                 for (char c = 'a'; c <= 'z'; ++c) {
                     new_word[j] = c; // Try substituting each character.
                     if (dict.find(new_word) != dict.end() && used_words.find(new_word) == used_words.end()) {
-                        vector<string> new_ladder = ladder;
-                        new_ladder.push_back(new_word);
-                        ladder_queue.push(new_ladder);
-                        used_words.insert(new_word);
+                        neighbors.push_back(new_word);
                     }
                 }
             }
@@ -143,10 +141,7 @@ vector<string> generate_word_ladder(const string& begin_word, const string& end_
                     string new_word = last_word;
                     new_word.insert(j, 1, c); // Insert character at position j.
                     if (dict.find(new_word) != dict.end() && used_words.find(new_word) == used_words.end()) {
-                        vector<string> new_ladder = ladder;
-                        new_ladder.push_back(new_word);
-                        ladder_queue.push(new_ladder);
-                        used_words.insert(new_word);
+                        neighbors.push_back(new_word);
                     }
                 }
             }
@@ -156,16 +151,24 @@ vector<string> generate_word_ladder(const string& begin_word, const string& end_
                 string new_word = last_word;
                 new_word.erase(j, 1); // Delete character at position j.
                 if (dict.find(new_word) != dict.end() && used_words.find(new_word) == used_words.end()) {
-                    vector<string> new_ladder = ladder;
-                    new_ladder.push_back(new_word);
-                    ladder_queue.push(new_ladder);
-                    used_words.insert(new_word);
+                    neighbors.push_back(new_word);
                 }
+            }
+
+            // Sort neighbors alphabetically to ensure consistent exploration order.
+            sort(neighbors.begin(), neighbors.end());
+
+            // Enqueue new ladders and mark words as used.
+            for (const string& n : neighbors) {
+                vector<string> new_ladder = ladder;
+                new_ladder.push_back(n);
+                ladder_queue.push(new_ladder);
+                used_words.insert(n);
             }
         }
     }
 
-    return {}; // No ladder found.
+    return {};
 }
 
 
